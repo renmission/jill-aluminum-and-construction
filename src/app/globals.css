@@ -1,26 +1,197 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@theme {
+  --color-glass: #eef2f1;
+  --color-glass-deep: #dde5e3;
+  --color-graphite: #22292c;
+  --color-graphite-soft: #4a5357;
+  --color-mill: #a9b2b5;
+  --color-edge: #2f6f61;
+  --color-edge-dark: #23574c;
+  --color-edge-light: #8fc2b4;
+  --font-sans: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 5rem;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-glass);
+  color: var(--color-graphite);
+  font-size: 1.0625rem;
+  line-height: 1.6;
+}
+
+/* Extra-wide Archivo, like lettering stamped on an extrusion */
+.display {
+  font-stretch: 125%;
+  font-weight: 640;
+  letter-spacing: -0.02em;
+  line-height: 0.98;
+  text-wrap: balance;
+}
+
+:focus-visible {
+  outline: 3px solid var(--color-edge);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+/* ---------- Materials ---------- */
+
+.finish-silver { --metal-a: #d7dcde; --metal-b: #9aa3a6; }
+.finish-champagne { --metal-a: #e2d4b3; --metal-b: #a8936a; }
+.finish-bronze { --metal-a: #7c5d47; --metal-b: #47342a; }
+.finish-black { --metal-a: #4a4f52; --metal-b: #1c2022; }
+
+.metal {
+  background:
+    repeating-linear-gradient(90deg, rgb(255 255 255 / 0.07) 0 1px, transparent 1px 3px),
+    linear-gradient(160deg, var(--metal-a), var(--metal-b));
+  transition: background 300ms ease;
+}
+
+.glass-shine {
+  background-image:
+    linear-gradient(118deg, transparent 30%, rgb(255 255 255 / 0.32) 38%, transparent 44%),
+    linear-gradient(118deg, transparent 50%, rgb(255 255 255 / 0.16) 54%, transparent 58%);
+}
+
+.sash {
+  padding: 12px;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+  box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.15);
+}
+
+/* Drafting paper behind elevation drawings */
+.drafting {
+  background-color: var(--color-glass-deep);
+  background-image:
+    linear-gradient(rgb(34 41 44 / 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(34 41 44 / 0.06) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+/* ---------- Hero load sequence (the one unprompted moment) ---------- */
+
+.line-mask {
+  display: block;
+  overflow: hidden;
+  padding-bottom: 0.1em;
+  margin-bottom: -0.1em;
+}
+.line-mask > span {
+  display: block;
+  animation: rise 1000ms var(--ease-out-expo) both;
+  animation-delay: calc(var(--i, 0) * 80ms + 80ms);
+}
+@keyframes rise { from { transform: translateY(108%); } }
+
+.fade-up {
+  animation: fade-up 900ms var(--ease-out-expo) both;
+  animation-delay: var(--d, 0ms);
+}
+@keyframes fade-up { from { opacity: 0; transform: translateY(14px); } }
+
+/* Hero photo settles into place as the headline rises */
+.hero-photo { animation: settle 2600ms var(--ease-out-expo) both; }
+@keyframes settle { from { transform: scale(1.1); } }
+
+.frame-in { animation: wipe 1100ms cubic-bezier(0.7, 0, 0.15, 1) 250ms backwards; }
+@keyframes wipe { from { clip-path: inset(100% 0 0 0); } to { clip-path: inset(0); } }
+
+/* Light sweep across the glass after a finish change */
+.sheen {
+  background: linear-gradient(105deg, transparent 35%, rgb(255 255 255 / 0.55) 50%, transparent 65%);
+  background-size: 250% 100%;
+  animation: sheen 1100ms var(--ease-out-expo) both;
+}
+@keyframes sheen { from { background-position: 120% 0; } to { background-position: -40% 0; } }
+
+/* Elevation drawings draw their lines in when shown */
+.draw-on .draw {
+  stroke-dasharray: 1;
+  animation: draw 1400ms var(--ease-out-expo) both;
+  animation-delay: calc(var(--i, 0) * 70ms);
+}
+.draw-on .draw-fade {
+  animation: fade-up 900ms var(--ease-out-expo) both;
+  animation-delay: calc(var(--i, 0) * 70ms + 400ms);
+}
+@keyframes draw { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+
+/* ---------- Scroll-driven (CSS only, progressive) ---------- */
+
+.pin-scroller {
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+}
+.pin-scroller > * > * { scroll-snap-align: start; }
+.pin-progress { display: none; }
+
+@supports (animation-timeline: view()) {
+  .site-header {
+    animation: header-solid linear both;
+    animation-timeline: scroll();
+    animation-range: 0 140px;
+  }
+  @keyframes header-solid {
+    from { background-color: rgb(238 242 241 / 0); border-color: transparent; }
+  }
+
+  /* root, not nearest: the hero clips its photo */
+  .hero-parallax {
+    animation: drift linear both;
+    animation-timeline: scroll(root);
+    animation-range: 0 100vh;
+  }
+  @keyframes drift { to { transform: translateY(16%); } }
+  .scroll-draw path, .scroll-draw line, .scroll-draw circle, .scroll-draw rect {
+    stroke-dasharray: 1;
+    animation: draw linear both;
+    animation-timeline: view();
+    animation-range: entry 30% cover 55%;
+  }
+
+  .rail-fill {
+    transform-origin: left;
+    animation: grow linear both;
+    animation-timeline: view();
+    animation-range: entry 70% cover 60%;
+  }
+  @keyframes grow { from { transform: scaleX(0); } }
+
+  @media (min-width: 768px) and (prefers-reduced-motion: no-preference) {
+    .pin { view-timeline: --pin block; height: 340vh; }
+    .pin-sticky { position: sticky; top: 0; height: 100dvh; overflow: hidden; display: flex; flex-direction: column; justify-content: center; }
+    .pin-scroller { overflow: visible; }
+    .pin-track { animation: pin-slide linear both; animation-timeline: --pin; animation-range: contain 0% contain 100%; }
+    @keyframes pin-slide { to { transform: translateX(calc(-100% + 100vw)); } }
+    .pin-progress { display: block; transform-origin: left; animation: grow linear both; animation-timeline: --pin; animation-range: contain 0% contain 100%; }
+  }
+}
+
+/* ---------- Lightbox + popover entry ---------- */
+
+dialog.lightbox[open], [popover]:popover-open {
+  animation: fade-up 350ms var(--ease-out-expo) both;
+}
+dialog.lightbox::backdrop { background: rgb(20 24 26 / 0.92); }
+
+/* ---------- View transitions (service morph) ---------- */
+
+::view-transition-group(.morph) { animation-duration: 550ms; animation-timing-function: var(--ease-out-expo); }
+::view-transition-image-pair(.morph) { animation-name: via-blur; }
+@keyframes via-blur { 30% { filter: blur(3px); } }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after, ::view-transition-group(*) {
+    animation: none !important;
+    transition-duration: 0ms !important;
+  }
 }
